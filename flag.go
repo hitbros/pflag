@@ -952,17 +952,17 @@ func (f *FlagSet) usage() {
 // --unknown arg ... (args will be arg ...)
 func stripUnknownFlagValue(args []string) []string {
 	if len(args) == 0 {
-		//--unknown
+		// --unknown
 		return args
 	}
 
 	first := args[0]
 	if len(first) > 0 && first[0] == '-' {
-		//--unknown --next-flag ...
+		// --unknown --next-flag ...
 		return args
 	}
 
-	//--unknown arg ... (args will be arg ...)
+	// --unknown arg ... (args will be arg ...)
 	if len(args) > 1 {
 		return args[1:]
 	}
@@ -1164,7 +1164,10 @@ func (f *FlagSet) Parse(arguments []string) error {
 		case ContinueOnError:
 			return err
 		case ExitOnError:
-			fmt.Println(err)
+			if err == ErrHelp {
+				os.Exit(0)
+			}
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(2)
 		case PanicOnError:
 			panic(err)
