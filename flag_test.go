@@ -433,7 +433,7 @@ func testParseWithUnknownFlags(f *FlagSet, t *testing.T) {
 		"-u=unknown3Value",
 		"-p",
 		"unknown4Value",
-		"-q", //another unknown with bool value
+		"-q", // another unknown with bool value
 		"-y",
 		"ee",
 		"--unknown7=unknown7value",
@@ -899,7 +899,7 @@ func TestChangingArgs(t *testing.T) {
 
 // Test that -help invokes the usage message and returns ErrHelp.
 func TestHelp(t *testing.T) {
-	var helpCalled = false
+	helpCalled := false
 	fs := NewFlagSet("help test", ContinueOnError)
 	fs.Usage = func() { helpCalled = true }
 	var flag bool
@@ -998,6 +998,7 @@ func getDeprecatedFlagSet() *FlagSet {
 	f.MarkDeprecated("badflag", "use --good-flag instead")
 	return f
 }
+
 func TestDeprecatedFlagInDocs(t *testing.T) {
 	f := getDeprecatedFlagSet()
 
@@ -1134,7 +1135,6 @@ func TestMultipleNormalizeFlagNameInvocations(t *testing.T) {
 	}
 }
 
-//
 func TestHiddenFlagInUsage(t *testing.T) {
 	f := NewFlagSet("bob", ContinueOnError)
 	f.Bool("secretFlag", true, "shhh")
@@ -1149,7 +1149,6 @@ func TestHiddenFlagInUsage(t *testing.T) {
 	}
 }
 
-//
 func TestHiddenFlagUsage(t *testing.T) {
 	f := NewFlagSet("bob", ContinueOnError)
 	f.Bool("secretFlag", true, "shhh")
@@ -1184,6 +1183,7 @@ const defaultOutput = `      --A                         for bootstrapping, allo
       --StringSlice strings       string slice with zero default
       --Z int                     an int that defaults to zero
       --custom custom             custom Value implementation
+      --custom-with-val custom    custom value which has been set from command line while help is shown
       --customP custom            a VarP with default (default 10)
       --maxT timeout              set timeout for dial
   -v, --verbose count             verbosity
@@ -1235,12 +1235,18 @@ func TestPrintDefaults(t *testing.T) {
 	cv2 := customValue(10)
 	fs.VarP(&cv2, "customP", "", "a VarP with default")
 
+	// Simulate case where a value has been provided and the help screen is shown
+	var cv3 customValue
+	fs.Var(&cv3, "custom-with-val", "custom value which has been set from command line while help is shown")
+	err := fs.Parse([]string{"--custom-with-val", "3"})
+	if err != nil {
+		t.Error("Parsing flags failed:", err)
+	}
+
 	fs.PrintDefaults()
 	got := buf.String()
 	if got != defaultOutput {
-		fmt.Println("\n" + got)
-		fmt.Println("\n" + defaultOutput)
-		t.Errorf("got %q want %q\n", got, defaultOutput)
+		t.Errorf("\n--- Got:\n%s--- Wanted:\n%s\n", got, defaultOutput)
 	}
 }
 
